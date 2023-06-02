@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lembretes</title>
+    <style>
+        body {
+            background-color: #f9f9f9;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .clock {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 10px solid #ccc;
+            margin: 50px auto;
+            position: relative;
+        }
+
+        .clock .hand {
+            position: absolute;
+            width: 4px;
+            height: 80px;
+            background-color: #333;
+            top: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(0deg);
+            transition: transform 0.8s cubic-bezier(0.42, 0, 0.58, 1);
+        }
+
+        .clock .hand::before {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: #333;
+            border-radius: 50%;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .clock .hand.seconds {
+            height: 90px;
+            background-color: #f44336;
+            transition: transform 0.15s ease-in-out;
+        }
+
+        .clock .hand.minutes {
+            height: 70px;
+            background-color: #333;
+            transition: transform 0.8s cubic-bezier(0.42, 0, 0.58, 1);
+        }
+
+        .clock .hand.hours {
+            height: 50px;
+            background-color: #333;
+            transition: transform 0.8s cubic-bezier(0.42, 0, 0.58, 1);
+        }
+    </style>
+    <script>
+        var interval;
+
+        function adicionarLembrete(tempo) {
+            var lembrete = document.getElementById('lembrete').value;
+            var lembretesList = document.getElementById('lembretesList');
+
+            var novoLembrete = document.createElement('li');
+            novoLembrete.innerHTML = lembrete;
+
+            var tempoInicial = Date.now();
+            var tempoFinal = tempoInicial + (tempo * 1000);
+
+            var tempoDecorridoElement = document.createElement('span');
+            tempoDecorridoElement.innerHTML = '0:00';
+
+            novoLembrete.appendChild(tempoDecorridoElement);
+            lembretesList.appendChild(novoLembrete);
+
+            var handSeconds = document.getElementById('handSeconds');
+            var handMinutes = document.getElementById('handMinutes');
+            var handHours = document.getElementById('handHours');
+
+            interval = setInterval(function() {
+                var tempoAtual = Date.now();
+                var tempoRestante = tempoFinal - tempoAtual;
+
+                if (tempoRestante <= 0) {
+                    clearInterval(interval);
+                    novoLembrete.style.backgroundColor = 'yellow';
+                    playNotificationSound();
+                }
+
+                var segundos = Math.floor((tempoRestante / 1000) % 60);
+                var minutos = Math.floor((tempoRestante / (1000 * 60)) % 60);
+                var horas = Math.floor((tempoRestante / (1000 * 60 * 60)) % 24);
+
+                tempoDecorridoElement.innerHTML = minutos + ':' + segundos.toString().padStart(2, '0');
+
+                var secondsRotation = (segundos / 60) * 360;
+                var minutesRotation = ((minutos * 60 + segundos) / 3600) * 360;
+                var hoursRotation = ((horas * 3600 + minutos * 60 + segundos) / 43200) * 360;
+
+                handSeconds.style.transform = `translateX(-50%) rotate(${secondsRotation}deg)`;
+                handMinutes.style.transform = `translateX(-50%) rotate(${minutesRotation}deg)`;
+                handHours.style.transform = `translateX(-50%) rotate(${hoursRotation}deg)`;
+            }, 1000);
+        }
+
+        function playNotificationSound() {
+            var audio = new Audio('notification_sound.mp3');
+            audio.play();
+        }
+    </script>
+</head>
+<body>
+    <h1>Lembretes</h1>
+
+    <input type="text" id="lembrete" placeholder="Digite um lembrete">
+    <button onclick="adicionarLembrete(15)">Adicionar 15 segundos</button>
+    <button onclick="adicionarLembrete(1800)">Adicionar 30 minutos</button>
+    <button onclick="adicionarLembrete(3600)">Adicionar 60 minutos</button>
+
+    <div class="clock">
+        <div class="hand seconds" id="handSeconds"></div>
+        <div class="hand minutes" id="handMinutes"></div>
+        <div class="hand hours" id="handHours"></div>
+    </div>
+
+    <ul id="lembretesList"></ul>
+
+    <audio id="notificationSound" src="notification_sound.mp3"></audio>
+</body>
+</html>
